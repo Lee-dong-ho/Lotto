@@ -11,12 +11,15 @@ def UpdateCountFile():
 
     i = int(line.split('=')[1])
     while 1:
-        i += 1
         url = 'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={}'
+        i += 1
         url = url.format(i)
-        req_result = requests.get(url)
+        try:
+            req_result = requests.get(url)
+        except:
+            i -=1; continue
         json_result = req_result.json()
-        if json_result.get('returnValue', None) == 'fail': break
+        if json_result.get('returnValue', 'fail') == 'fail': break
         r[json_result.get('drwtNo1', None)] += 1
         r[json_result.get('drwtNo2', None)] += 1
         r[json_result.get('drwtNo3', None)] += 1
@@ -29,7 +32,7 @@ def UpdateCountFile():
         for k,v in r.items():
             f.write(f"{k}={v}\n")
         f.close()
-        print("drwNo={i} Success!")
+        print(f"drwNo={i} Success!")
     return i-1
 
 def GetRecentlyNum(drwNo):
@@ -122,6 +125,7 @@ def BackupFile():
         lines = f.readlines()
     except FileNotFoundError:
         f = open('count.txt', 'w')
+        f.write("drwNo=0")
         lines = []
     f.close()
 
