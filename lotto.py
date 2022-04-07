@@ -3,22 +3,46 @@ import random
 import datetime
 
 def GetWinNumbers(drwNo):
-    url = f'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={drwNo}'
     try:
-        json_result = requests.get(url).json()
-    except:
-        GetWinNumbers(drwNo)
-    if json_result.get('returnValue', 'fail') == 'fail': return None, None
-    res = []
-    res.append(json_result.get('drwtNo1', None))
-    res.append(json_result.get('drwtNo2', None))
-    res.append(json_result.get('drwtNo3', None))
-    res.append(json_result.get('drwtNo4', None))
-    res.append(json_result.get('drwtNo5', None))
-    res.append(json_result.get('drwtNo6', None))
-    res.append(json_result.get('bnusNo', None))
-    drwNoDate = json_result.get('drwNoDate', None)
-    return res, drwNoDate
+        f = open('LottoResult.txt', 'r')
+    except FileNotFoundError:
+        UpdateLottoResultFile(); return GetWinNumbers(drwNo)
+    line = f.readlines()[drwNo-1]
+    winnums = line.split("  ")[2].split("=")[1].strip("]\n").strip("[")
+    drwNoDate = line.split("  ")[1].split("=")[1]
+    f.close()
+    winnums = [int(x) for x in winnums.split(", ")]
+    return winnums, drwNoDate
+
+def UpdateLottoResultFile():
+    try:
+        f = open('LottoResult.txt', 'r')
+        drwNo = len(f.readlines()) + 1
+        f.close()
+    except FileNotFoundError:
+        drwNo = 1
+    while 1:
+        url = f'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={drwNo}'
+        try:
+            json_result = requests.get(url).json()
+        except:
+            continue
+        if json_result.get('returnValue', 'fail') == 'fail': return
+        winnums = []
+        winnums.append(json_result.get('drwtNo1', None))
+        winnums.append(json_result.get('drwtNo2', None))
+        winnums.append(json_result.get('drwtNo3', None))
+        winnums.append(json_result.get('drwtNo4', None))
+        winnums.append(json_result.get('drwtNo5', None))
+        winnums.append(json_result.get('drwtNo6', None))
+        winnums.append(json_result.get('bnusNo', None))
+        drwNoDate = json_result.get('drwNoDate', None)
+
+        if drwNo == 1: f = open('LottoResult.txt', 'w')
+        else: f = open('LottoResult.txt', 'a')
+        f.write(f"drwNo={drwNo}  drwNoDate={drwNoDate}  WinNums={winnums}\n")
+        f.close()
+        drwNo += 1
 
 def GetCurrentCountFile():
     try:
