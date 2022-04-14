@@ -1,5 +1,9 @@
-__pycache__
-build
-count_backup.txt
-dist
+__pycache__/
+build/
+dist/
+
 main.spec
+count_backup.txt
+LottoResult.txt
+No.*.txt
+20*.txt
